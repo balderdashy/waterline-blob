@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha"
   },
-  "repository": "",
+  "repository": "git://github.com/balderdashy/waterline-blob.git",
   "keywords": [
     "blob",
     "waterline",
