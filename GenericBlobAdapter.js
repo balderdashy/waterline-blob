@@ -115,7 +115,7 @@ var Adapter = function (adapter) {
 		// Apply options to upload stream
 		_.extend(uploadStream, options);
 
-		console.log('\n\n', 'uploadstream:',uploadStream);
+		// console.log('\n\n', 'uploadstream:',uploadStream);
 
 		// Call the wrapped adapter upload logic
 		////////////////////////////////////////////////////////////
