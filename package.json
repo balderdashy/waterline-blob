@@ -15,5 +15,10 @@
     "custom"
   ],
   "author": "Mike McNeil",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "mime": "~1.2.11",
+    "lodash": "~2.2.0",
+    "archiver": "~0.4.10"
+  }
 }
