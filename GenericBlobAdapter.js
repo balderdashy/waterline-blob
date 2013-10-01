@@ -106,13 +106,16 @@ var Adapter = function (adapter) {
 		// Default options
 		_.defaults(options, {
 			maxBytes: 1000 * 1000 * 1000, // 1GB
-			maxBytesPerFile: 1000 * 1000 * 25 // 25MB
+			maxBytesPerFile: 1000 * 1000 * 25, // 25MB
+			saveAs: function (filename) {
+				return filename;
+			}
 		});
 
 		// Apply options to upload stream
 		_.extend(uploadStream, options);
 
-		// console.log('\n\n', 'uploadstream:',uploadStream);
+		console.log('\n\n', 'uploadstream:',uploadStream);
 
 		// Call the wrapped adapter upload logic
 		////////////////////////////////////////////////////////////
