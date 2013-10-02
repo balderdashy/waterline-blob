@@ -5,7 +5,7 @@
 var _		= require('lodash'),
 	Stream	= require('stream'),
 	DownloadStream = require('./DownloadStream'),
-	isValidStream = require('./isValidStream');
+	Validation = require('./validation');
 
 var errors = {
 
@@ -89,16 +89,20 @@ var Adapter = function (adapter) {
 		cb = cb || function () {};
 
 		// No valid upload stream means no files
-		if ( ! isValidStream(uploadStream) ) {
+		if ( ! Validation.isValidStream(uploadStream) ) {
 			return cb(null, []);
 		}
 
-
-		// If no `pathPrefix` is set, default to '.tmp/' (in your app's cwd)
-		// but log a warning
-		if (!options.pathPrefix) {
+		// TODO: If no `pathPrefix` is set, default to '.tmp/' (in your app's cwd) but log a warning
+		
+		// For now, just error out
+		if (! _.isString(options.pathPrefix) ) {
 			return cb(errors.read.invalidPathPrefix);
 		}
+
+		// Sanitize path prefix
+		options.pathPrefix = Validation.sanitizePathPrefix(options.pathPrefix);
+
 
 		// Default options
 		_.defaults(options, {
@@ -254,7 +258,6 @@ var Adapter = function (adapter) {
 
 	};
 };
-
 
 
 /**
