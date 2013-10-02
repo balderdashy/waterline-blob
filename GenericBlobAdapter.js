@@ -33,7 +33,7 @@ var errors = {
  * Upload file with specified field name:
  * ========================================
  *
- * Adapter.upload( uploadStream, options, cb )
+ * Adapter.write( uploadStream, options, cb )
  *
  *	@param {Stream} uploadStream :: A paused stream listening for one file
  *									e.g. req.param('file_fieldname')
@@ -51,7 +51,7 @@ var errors = {
  * Multiple file upload:
  * ========================================
  *
- * Adapter.upload( uploadStream, options, cb )
+ * Adapter.write( uploadStream, options, cb )
  *
  *	@param {string} uploadStream :: A paused stream listening for ALL files
  *									e.g. req.files
