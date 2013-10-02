@@ -10,8 +10,8 @@ var _		= require('lodash'),
 var errors = {
 
 	read: {
-		invalidContainer: new Error('Invalid container!'),
-		usage			: new Error('Adapter.read() :: Invalid usage!')
+		invalidPathPrefix	: new Error('Adapter.read() :: Invalid `pathPrefix` specified!'),
+		usage				: new Error('Adapter.read() :: Invalid usage!')
 	},
 
 	// Emit dummy stream that just errors out immediately
@@ -71,10 +71,10 @@ var Adapter = function (adapter) {
 	 * then set up events to automatically pipe the FieldStream of any newly detected file
 	 * from the UploadStream to the destination stream
 	 *
-	 * @param {Stream} `uploadStream`	::	contains pausd field streams 
+	 * @param {Stream} `uploadStream`	::	contains paused field streams 
 	 *										and fires when new ones are added
 	 * @param {Object} `options`
-	 *			container		: {String} directory path where file(s) sould be stored
+	 *			pathPrefix		: {String} directory path where file(s) should be stored
 	 *			maxBytes		: {Integer} Maximum combined size of all files together (default 1GB)
 	 *			maxBytesPerFile	: {Integer} Maximum file size for each individual file (default 25MB)
 	 */
@@ -94,13 +94,10 @@ var Adapter = function (adapter) {
 		}
 
 
-		// If no container is set, default to '.tmp/' (in your app's cwd)
+		// If no `pathPrefix` is set, default to '.tmp/' (in your app's cwd)
 		// but log a warning
-		if (!options.container) {
-			// options.container = '/Users/mike/Desktop/';
-			// console.warn('Uploading to default container, `',options.container,'`');
-			// 'No destination container specified for file upload!'
-			return cb(errors.read.invalidContainer);
+		if (!options.pathPrefix) {
+			return cb(errors.read.invalidPathPrefix);
 		}
 
 		// Default options
@@ -208,28 +205,26 @@ var Adapter = function (adapter) {
 		}
 
 		// Normalize options object
-		// (split filename and container path)
+		// (split filename and pathPrefix path)
 		if ( _.isString(options) ) {
 			var path = options;
 			options = {
-				// Container path
-				container: path.match(/(.+)\/[^/]+\/?$/)[1],
-				// File name
+				pathPrefix: path.match(/(.+)\/[^/]+\/?$/)[1],
 				filename: path.match(/\/([^/]+)\/?$/)[1]
 			};
 		}
 		if ( !_.isPlainObject(options) ) {
 			options = {};
 		}
-		if (!_.isString(options.container)) {
-			return cb(errors.read.invalidContainer);
+		if (!_.isString(options.pathPrefix)) {
+			return cb(errors.read.invalidPathPrefix);
 		}
 
-		if ( _.isString(options.container) ) {
-			// Trim trailing slash off of container path
-			options.container = options.container.replace(/\/*$/, '');
+		if ( _.isString(options.pathPrefix) ) {
+			// Trim trailing slash off of pathPrefix
+			options.pathPrefix = options.pathPrefix.replace(/\/*$/, '');
 			// and make sure it has a leading slash
-			options.container = options.container.replace(/^([^/])/, '/$1');
+			options.pathPrefix = options.pathPrefix.replace(/^([^/])/, '/$1');
 		}
 
 		// If no filename specified, select all files

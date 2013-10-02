@@ -51,10 +51,10 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 		 * then set up events to automatically pipe the FieldStream of any newly detected file
 		 * from the UploadStream to the destination stream
 		 *
-		 * @param {Stream} `uploadStream`	::	contains pausd field streams 
-		 *										and fires when new ones are added
+		 * @param {Stream} `incomingStream`	::	contains paused field streams 
+		 *										and emits `data` event when new ones are added
 		 * @param {Object} `options`
-		 *			container		: {String} directory path where file(s) sould be stored
+		 *			pathPrefix		: {String} directory path where file(s) should be stored
 		 *			maxBytes		: {Integer} Maximum combined size of all files together (default 1GB)
 		 *			maxBytesPerFile	: {Integer} Maximum file size for each individual file (default 25MB)
 		 */
@@ -71,11 +71,11 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 
 		/**
 		 * Adapter.read()
-		 * Adapter.read(destinationStream)
+		 * Adapter.read(outgoingStream)
 		 * Adapter.read(cb)
 		 * Adapter.read({})
 		 * Adapter.read({}, cb)
-		 * Adapter.read({}, destinationStream)
+		 * Adapter.read({}, outgoingStream)
 		 */
 
 		read: function (collectionName) {
