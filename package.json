@@ -1,6 +1,6 @@
 {
   "name": "waterline-blob",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Generic helper logic for building a waterline/sails blob adapter",
   "main": "index.js",
   "scripts": {
