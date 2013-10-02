@@ -29,8 +29,16 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 
 	return {
 
+		/**
+		 * Run when collection is instantiated
+		 *
+		 * TODO: completely wipe this stuff when this is in waterline core
+		 */
 		registerCollection: function (collection, cb) {
-			cb();
+			if (adapter.registerCollection) {
+				return adapter.registerCollection(collection, cb);
+			}
+			return cb();
 		},
 
 
