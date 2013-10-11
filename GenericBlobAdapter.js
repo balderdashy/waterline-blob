@@ -28,6 +28,30 @@ var errors = {
 
 
 
+
+// Collection configurations
+var _collectionConfigs = {};
+
+/**
+ * Extend usage options with collection configuration
+ * (which also includes adapter defaults)
+ * @api private
+ */
+function _extendOptions(cid, options) {
+
+	// Ignore unexpected options, use {} instead
+	options = _.isPlainObject(options) ? options : {};
+
+	// Apply collection defaults, if relevant
+	if (cid) {
+		return _.merge({}, _collectionConfigs[cid], options);
+	}
+	return _.merge({}, options);
+}
+
+
+
+
 /**
  * 
  * Upload file with specified field name:
@@ -64,6 +88,23 @@ var errors = {
 
 var Adapter = function (adapter) {
 
+
+	/**
+	 * Default registerCollection behavior
+	 */
+	this.registerCollection = function (collection, cb) {
+
+		// Absorb defaults into collection configuration
+		collection.config = _.defaults(collection.config, adapter.defaults);
+
+		// Store each collection config for later
+		_collectionConfigs[collection.identity] = _.cloneDeep(collection.config);
+		
+		if ( !adapter.registerCollection ) return cb();
+		return adapter.registerCollection(collection, cb);
+	};
+
+
 	 /**
 	 * `Adapter.write()`
 	 *
@@ -79,7 +120,7 @@ var Adapter = function (adapter) {
 	 *			maxBytesPerFile	: {Integer} Maximum file size for each individual file (default 25MB)
 	 */
 
-	this.write = function (uploadStream, options, cb) {
+	this.write = function (cid, uploadStream, options, cb) {
 
 		// Usage
 		if (!_.isFunction(cb) && _.isFunction(options)) {
@@ -93,7 +134,8 @@ var Adapter = function (adapter) {
 			return cb(null, []);
 		}
 
-		// TODO: If no `pathPrefix` is set, default to '.tmp/' (in your app's cwd) but log a warning
+		// Apply collection/adapter default options
+		options = _extendOptions(cid, options);
 		
 		// For now, just error out
 		if (! _.isString(options.pathPrefix) ) {
@@ -146,7 +188,7 @@ var Adapter = function (adapter) {
 	 * Adapter.read({}, destinationStream, cb)
 	 */
 
-	this.read = function () {
+	this.read = function (cid) {
 
 		var options, cb, destinationStream;
 		var err;
@@ -155,9 +197,9 @@ var Adapter = function (adapter) {
 		cb = cb || function readComplete () {};
 
 		// Ensure valid usage
-		var arg0 = arguments[0],
-			arg1 = arguments[1],
-			arg2 = arguments[2];
+		var arg0 = arguments[1],
+			arg1 = arguments[2],
+			arg2 = arguments[3];
 
 		// Adapter.read({Object|String}, {Function})
 		if ( (_.isPlainObject(arg0) || _.isString(arg0)) &&
@@ -208,6 +250,7 @@ var Adapter = function (adapter) {
 			return errors.stream(errors.read.usage);			
 		}
 
+
 		// Normalize options object
 		// (split filename and pathPrefix path)
 		if ( _.isString(options) ) {
@@ -223,6 +266,11 @@ var Adapter = function (adapter) {
 		if (!_.isString(options.pathPrefix)) {
 			return cb(errors.read.invalidPathPrefix);
 		}
+
+
+		// Apply collection/adapter default options
+		options = _extendOptions(cid, options);
+		
 
 		if ( _.isString(options.pathPrefix) ) {
 			// Trim trailing slash off of pathPrefix

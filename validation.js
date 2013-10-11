@@ -13,10 +13,9 @@ module.exports = {
 
 
 	// Trim trailing slash off of pathPrefix
-	// and make sure it has a leading slash
 	sanitizePathPrefix: function (pathPrefix) {
 		pathPrefix = pathPrefix.replace(/\/*$/, '');
-		pathPrefix = pathPrefix.replace(/^([^/])/, '/$1');
+		// pathPrefix = pathPrefix.replace(/^([^/])/, '/$1');
 		return pathPrefix;
 	}
 };

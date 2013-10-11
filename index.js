@@ -65,9 +65,7 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 		 */
 
 		write: function (collectionName) {
-			// Slice off first argument (collectionName)
 			var args = Array.prototype.slice.call(arguments, 0);
-			args.shift();
 
 			// Call underlying method
 			adapter.write.apply(this, args);
@@ -84,10 +82,7 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 		 */
 
 		read: function (collectionName) {
-
-			// Slice off first argument (collectionName)
 			var args = Array.prototype.slice.call(arguments, 0);
-			args.shift();
 
 			// Call underlying method
 			adapter.read.apply(this, args);	
