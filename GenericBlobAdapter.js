@@ -29,28 +29,6 @@ var errors = {
 
 
 
-// Collection configurations
-var _collectionConfigs = {};
-
-/**
- * Extend usage options with collection configuration
- * (which also includes adapter defaults)
- * @api private
- */
-function _extendOptions(cid, options) {
-
-	// Ignore unexpected options, use {} instead
-	options = _.isPlainObject(options) ? options : {};
-
-	// Apply collection defaults, if relevant
-	if (cid) {
-		return _.merge({}, _collectionConfigs[cid], options);
-	}
-	return _.merge({}, options);
-}
-
-
-
 
 /**
  * 
@@ -87,6 +65,26 @@ function _extendOptions(cid, options) {
  */
 
 var Adapter = function (adapter) {
+
+	// Collection configurations
+	var _collectionConfigs = {};
+
+	/**
+	 * Extend usage options with collection configuration
+	 * (which also includes adapter defaults)
+	 * @api private
+	 */
+	var _extendOptions = function (cid, options) {
+
+		// Ignore unexpected options, use {} instead
+		options = _.isPlainObject(options) ? options : {};
+
+		// Apply collection defaults, if relevant
+		if (cid) {
+			return _.merge({}, _collectionConfigs[cid], options);
+		}
+		return _.merge({}, options);
+	};
 
 
 	/**
