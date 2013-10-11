@@ -22,10 +22,15 @@ var _ = require('lodash'),
  */
 module.exports = function generateWaterlineAdapter (adapterDefinition) {
 
+
 	// Instantiates a GenericBlobAdapter, using the blob adapter def.
 	// to configure the logic.  `adapter` is now a Waterline-compatible 
 	// adapter definition.
 	var adapter = new GenericBlobAdapter ( adapterDefinition );
+	
+	// Merge in any other methods from def. which aren't covered
+	// e.g. registerCollection
+	_.defaults(adapter, adapterDefinition);
 
 	return {
 
