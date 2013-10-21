@@ -72,11 +72,13 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 		},
 
 
-		/**
-		 * Adapter.deleteFile(cid, options, cb)
-		 */
 
-		deleteFile: function (collectionName, options, cb) {
+		/**
+		 * Adapter.rm(cid, options, cb)
+		 *
+		 * Delete/unlink a file from the connected filesystem.
+		 */
+		rm: function (collectionName, options, cb) {
 			// Stub response
 			setTimeout(cb, 1);
 		},
