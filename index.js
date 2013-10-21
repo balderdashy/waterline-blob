@@ -73,20 +73,17 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 
 
 		/**
-		 * Adapter.read()
-		 * Adapter.read(outgoingStream)
-		 * Adapter.read(cb)
-		 * Adapter.read({})
-		 * Adapter.read({}, cb)
-		 * Adapter.read({}, outgoingStream)
+		 * Adapter.deleteFile(cid, options, cb)
 		 */
 
-		read: function (collectionName) {
-			var args = Array.prototype.slice.call(arguments, 0);
+		deleteFile: function (collectionName, options, cb) {
+			// Stub response
+			setTimeout(cb, 1);
+		},
 
-			// Call underlying method
-			adapter.read.apply(this, args);	
-		}
+
+
+
 	};
 
 };
