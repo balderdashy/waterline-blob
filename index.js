@@ -73,6 +73,15 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 
 
 
+		read: function (collectionName) {
+			var args = Array.prototype.slice.call(arguments, 0);
+
+			// Call underlying method
+			adapter.read.apply(this, args);
+		},
+
+
+
 		/**
 		 * Adapter.rm(cid, options, cb)
 		 *
