@@ -80,7 +80,9 @@ var Adapter = function (adapter) {
 		options = _.isPlainObject(options) ? options : {};
 
 		// Apply collection defaults, if relevant
+		console.log('merging collection defaults for :: ', cid);
 		if (cid) {
+			console.log('result:',_.merge({}, _collectionConfigs[cid], options));
 			return _.merge({}, _collectionConfigs[cid], options);
 		}
 		return _.merge({}, options);
@@ -191,6 +193,7 @@ var Adapter = function (adapter) {
 		var options, cb, destinationStream;
 		var err;
 
+
 		// Optional callback
 		cb = cb || function readComplete () {};
 
@@ -238,9 +241,11 @@ var Adapter = function (adapter) {
 		}
 
 		// Adapter.read()
-		else if ( _.isUndefined (arg0) ) { }
+		// else if ( _.isUndefined (arg0) ) { }
 
 		else {
+			console.error('Usage error!',errors.read.usage);
+
 			// Usage error occurred
 			cb(errors.read.usage);
 
@@ -269,10 +274,6 @@ var Adapter = function (adapter) {
 		if ( !_.isPlainObject(options) ) {
 			options = {};
 		}
-		if (!_.isString(options.pathPrefix)) {
-			return cb(errors.read.invalidPathPrefix);
-		}
-
 
 		// Apply collection/adapter default options
 		options = _extendOptions(cid, options);
@@ -285,12 +286,6 @@ var Adapter = function (adapter) {
 			options.pathPrefix = options.pathPrefix.replace(/^([^/])/, '/$1');
 		}
 
-		// ---x----If no filename specified, select all files
-		// whoa whoa whoa-- bad idea!
-		//
-		// if (!options.filename) {
-		// 	options.filename = '*';
-		// }
 
 		// Default encoding to uft8
 		options.decoding = options.decoding || 'utf8';
