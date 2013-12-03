@@ -100,7 +100,7 @@ function DownloadStream () {
 	 * End the stream
 	 */
 	this.end = function () {
-		log('Ending download stream...');
+		log.verbose('Ending download stream...');
 		this.emit('end');
 	};
 
@@ -129,7 +129,7 @@ function DownloadStream () {
 
 		// Replay the buffered bytes onto the downloadStream
 		else {
-			log('Replaying buffered bytes and downloading the first file...');
+			log.verbose('Replaying buffered bytes and downloading the first file...');
 			firstFile.pipe(self);
 			// firstFile.resume();
 		}
@@ -144,6 +144,15 @@ function DownloadStream () {
 
 		// emit a `notfound` event on the stream
 		self.emit('notfound');
+
+		// If a `status()` method exists on destination stream,
+		// call it with '404'
+		if ( typeof self.status === 'function' ) {
+			self.status(404);
+		}
+
+		// Write something to indicate no messages were found
+		self.write('No files were downloaded.');
 
 		// End stream
 		self.end();
@@ -187,7 +196,7 @@ function DownloadStream () {
 	this.on('file', function (incomingFileStream) {
 
 		incomingFileStream.index = fileCount;
-		log('Discovered file #' + incomingFileStream.index + ' (' + incomingFileStream.filename + ')');
+		log.verbose('Discovered file #' + incomingFileStream.index + ' (' + incomingFileStream.filename + ')');
 
 		// Manage file count and limits
 		if (limitFileCount && fileCount >= limitFileCount ) {
@@ -248,17 +257,17 @@ function DownloadStream () {
 
 
 			// Replay buffered bytes of first file into zip
-			log('Writing ' + firstFile.filename + ' to zipstream...');
+			log.verbose('Writing ' + firstFile.filename + ' to zipstream...');
 			this.zipstream.append( firstFile , { name: firstFile.filename });
-			log('Replaying buffered bytes and zipping the rest of the first file...');
+			log.verbose('Replaying buffered bytes and zipping the rest of the first file...');
 			// firstFile.resume();
 		}
 
 
 		// For every file discovered after the first, just zip and stream it
-		log('Writing ' + incomingFileStream.filename + ' to zipstream...');
+		log.verbose('Writing ' + incomingFileStream.filename + ' to zipstream...');
 		this.zipstream.append( incomingFileStream , { name: incomingFileStream.filename }, function (err) {
-			console.log('File #' + incomingFileStream.index +'  (' + incomingFileStream.filename + ') written successfully!', err);
+			log.verbose('File #' + incomingFileStream.index +'  (' + incomingFileStream.filename + ') written successfully!', err);
 		});
 
 	});

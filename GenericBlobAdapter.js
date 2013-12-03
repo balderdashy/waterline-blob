@@ -80,9 +80,7 @@ var Adapter = function (adapter) {
 		options = _.isPlainObject(options) ? options : {};
 
 		// Apply collection defaults, if relevant
-		console.log('merging collection defaults for :: ', cid);
 		if (cid) {
-			console.log('result:',_.merge({}, _collectionConfigs[cid], options));
 			return _.merge({}, _collectionConfigs[cid], options);
 		}
 		return _.merge({}, options);
@@ -244,7 +242,7 @@ var Adapter = function (adapter) {
 		// else if ( _.isUndefined (arg0) ) { }
 
 		else {
-			console.error('Usage error!',errors.read.usage);
+			console.error('Invalid usage of .read() ::',errors.read.usage);
 
 			// Usage error occurred
 			cb(errors.read.usage);
