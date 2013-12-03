@@ -253,8 +253,13 @@ var Adapter = function (adapter) {
 		// (split filename and pathPrefix path)
 		if ( _.isString(options) ) {
 			var path = options;
+
+			// Dereference match out here to be safe
+			var _pathPrefix = path.match(/(.+)\/[^/]+\/?$/);
+			_pathPrefix = _pathPrefix && _pathPrefix[1];
+
 			options = {
-				pathPrefix: path.match(/(.+)\/[^/]+\/?$/)[1],
+				pathPrefix: _pathPrefix,
 				filename: path.match(/\/([^/]+)\/?$/)[1]
 			};
 		}
