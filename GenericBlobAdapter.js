@@ -254,13 +254,16 @@ var Adapter = function (adapter) {
 		if ( _.isString(options) ) {
 			var path = options;
 
-			// Dereference match out here to be safe
+			// Dereference matches out here to be safe
 			var _pathPrefix = path.match(/(.+)\/[^/]+\/?$/);
 			_pathPrefix = _pathPrefix && _pathPrefix[1];
 
+			var _filename = path.match(/\/([^/]+)\/?$/);
+			_filename = _filename && _filename[1];
+
 			options = {
 				pathPrefix: _pathPrefix,
-				filename: path.match(/\/([^/]+)\/?$/)[1]
+				filename: _filename
 			};
 		}
 		if ( !_.isPlainObject(options) ) {
@@ -282,10 +285,12 @@ var Adapter = function (adapter) {
 			options.pathPrefix = options.pathPrefix.replace(/^([^/])/, '/$1');
 		}
 
-		// If no filename specified, select all files
-		if (!options.filename) {
-			options.filename = '*';
-		}
+		// ---x----If no filename specified, select all files
+		// whoa whoa whoa-- bad idea!
+		//
+		// if (!options.filename) {
+		// 	options.filename = '*';
+		// }
 
 		// Default encoding to uft8
 		options.decoding = options.decoding || 'utf8';
