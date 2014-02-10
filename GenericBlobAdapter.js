@@ -81,9 +81,18 @@ var Adapter = function (adapter) {
 
 		// Apply collection defaults, if relevant
 		if (cid) {
-			return _.merge({}, _collectionConfigs[cid], options);
+			options = _.merge({}, _collectionConfigs[cid], options);
 		}
-		return _.merge({}, options);
+		
+		// Clone options
+		options = _.merge({}, options);
+
+		_.defaults(options, {
+			// Default `pathPrefix` to a local tmp directory
+			pathPrefix: '.tmp/'
+		});
+
+		return options;
 	};
 
 
@@ -118,7 +127,7 @@ var Adapter = function (adapter) {
 	 *			maxBytesPerFile	: {Integer} Maximum file size for each individual file (default 25MB)
 	 */
 
-	this.write = function (cid, uploadStream, options, cb) {
+	this.write = function (connectionID, cid, uploadStream, options, cb) {
 
 		// Usage
 		if (!_.isFunction(cb) && _.isFunction(options)) {
