@@ -248,7 +248,7 @@ var Adapter = function ( childAdapter ) {
 			options = {};
 		}
 
-		// Apply collection/adapter default options
+		// Apply connection's default options
 		options = _extendOptions(connectionID, options);
 		
 		// Validate + sanitize path prefix
