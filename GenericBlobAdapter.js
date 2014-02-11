@@ -115,12 +115,10 @@ var Adapter = function ( childAdapter ) {
 		options = _extendOptions(connectionID, options);
 
 		
-		// For now, just error out
+		// Validate + sanitize path prefix
 		if (! _.isString(options.pathPrefix) ) {
 			return cb(errors.read.invalidPathPrefix(options.pathPrefix));
 		}
-
-		// Sanitize path prefix
 		options.pathPrefix = Validation.sanitizePathPrefix(options.pathPrefix);
 
 		// Apply options to upload stream
@@ -255,13 +253,11 @@ var Adapter = function ( childAdapter ) {
 		// Apply collection/adapter default options
 		options = _extendOptions(connectionID, options);
 		
-
-		if ( _.isString(options.pathPrefix) ) {
-			// Trim trailing slash off of pathPrefix
-			options.pathPrefix = options.pathPrefix.replace(/\/*$/, '');
-			// and make sure it has a leading slash
-			options.pathPrefix = options.pathPrefix.replace(/^([^/])/, '/$1');
+		// Validate + sanitize path prefix
+		if (! _.isString(options.pathPrefix) ) {
+			return cb(errors.read.invalidPathPrefix(options.pathPrefix));
 		}
+		options.pathPrefix = Validation.sanitizePathPrefix(options.pathPrefix);
 
 
 		// Call the childAdapter's download logic

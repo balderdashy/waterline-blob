@@ -12,10 +12,20 @@ module.exports = {
 	},
 
 
-	// Trim trailing slash off of pathPrefix
+	/**
+	 * 
+	 * @param  {[type]} pathPrefix [description]
+	 * @return {[type]}            [description]
+	 */
 	sanitizePathPrefix: function (pathPrefix) {
+
+		// Trim trailing slash off of pathPrefix
 		pathPrefix = pathPrefix.replace(/\/*$/, '');
+
+		// And make sure it has a leading slash
+		// TODO: figure out whether this should be here or not
 		// pathPrefix = pathPrefix.replace(/^([^/])/, '/$1');
+
 		return pathPrefix;
 	}
 };
