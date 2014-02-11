@@ -5,13 +5,26 @@
 var _		= require('lodash'),
 	Stream	= require('stream'),
 	DownloadStream = require('./DownloadStream'),
+	util = require('util'),
 	Validation = require('./validation');
+
+
+
+
 
 var errors = {
 
 	read: {
-		invalidPathPrefix	: new Error('Adapter.read() :: Invalid `pathPrefix` specified!'),
-		usage				: new Error('Adapter.read() :: Invalid usage!')
+		invalidPathPrefix	: function (pathPrefix) {
+			return new Error(util.format('Adapter.read() :: Invalid `pathPrefix` (%s) specified!', pathPrefix));
+		},
+		usage				: function () {
+			return new Error('Adapter.read() :: Invalid usage!');
+		},
+	},
+
+	invalidUploadStream: function (uploadStream) {
+		return new Error(util.format('Adapter :: Invalid upload stream for field: `%s`.', uploadStream.fieldName));
 	},
 
 	// Emit dummy stream that just errors out immediately
@@ -29,86 +42,43 @@ var errors = {
 
 
 
+var Adapter = function ( childAdapter ) {
 
-/**
- * 
- * Upload file with specified field name:
- * ========================================
- *
- * Adapter.write( uploadStream, options, cb )
- *
- *	@param {Stream} uploadStream :: A paused stream listening for one file
- *									e.g. req.param('file_fieldname')
- *	@param {Object} options :: 
- *						=> path or bucket or something
- *						=> fileName (if string, use the string as the name to save the file as)
- *							( true means that some crazy unique cryptographic (probably sha1) hash will be used instead)
- *							 ( default: false, which means file's `filename` will be used--)
- *	@param {?} cb :: Any supported waterline asynchronous handling shit
- *
- */
+	// Connection configurations
+	var _connections = {};
 
- /**
- * 
- * Multiple file upload:
- * ========================================
- *
- * Adapter.write( uploadStream, options, cb )
- *
- *	@param {string} uploadStream :: A paused stream listening for ALL files
- *									e.g. req.files
- *	@param {Object} options :: 
- *						=> path or bucket or something
- *						=> fileName (default: false, which means file's `filename` will be used-- true means that some crazy unique cryptographic (probably sha1) hash will be used instead)
- *	@param {?} cb :: Any supported waterline asynchronous handling shit
- *
- */
-
-var Adapter = function (adapter) {
-
-	// Collection configurations
-	var _collectionConfigs = {};
 
 	/**
-	 * Extend usage options with collection configuration
-	 * (which also includes adapter defaults)
-	 * @api private
+	 * registerConnection
+	 *
+	 * Wrapper for childAdapter's registerConnection.
+	 * 
+	 * @param  {Object}   connection
+	 * @param  {Object}   collections
+	 * @param  {Function} cb         [description]
+	 * @return {[type]}              [description]
 	 */
-	var _extendOptions = function (cid, options) {
+	this.registerConnection = function (connection, collections, cb) {
 
-		// Ignore unexpected options, use {} instead
-		options = _.isPlainObject(options) ? options : {};
-
-		// Apply collection defaults, if relevant
-		if (cid) {
-			options = _.merge({}, _collectionConfigs[cid], options);
-		}
-		
-		// Clone options
-		options = _.merge({}, options);
-
-		_.defaults(options, {
-			// Default `pathPrefix` to a local tmp directory
-			pathPrefix: '.tmp/'
+		// Build connection config and mix in default options
+		var config = _.cloneDeep(connection);
+		_.defaults(config, {
+			maxBytes: 1000 * 1000 * 1000, // 1GB
+			maxBytesPerFile: 1000 * 1000 * 25, // 25MB
+			saveAs: function (filename) {
+				return filename;
+			},
+			decoding: 'utf8'
 		});
 
-		return options;
-	};
-
-
-	/**
-	 * Default registerCollection behavior
-	 */
-	this.registerCollection = function (connection, collection, cb) {
-
-		// Absorb defaults into collection configuration
-		collection.config = _.defaults(collection.config, adapter.defaults);
-
-		// Store each collection config for later
-		_collectionConfigs[collection.identity] = _.cloneDeep(collection.config);
+		// Store each connection config for later
+		_connections[connection.identity] = {
+			config: config,
+			collections: collections
+		};
 		
-		if ( !adapter.registerCollection ) return cb();
-		return adapter.registerCollection(collection, cb);
+		if ( !childAdapter.registerConnection ) return cb();
+		return childAdapter.registerConnection(connection, collections, cb);
 	};
 
 
@@ -127,7 +97,7 @@ var Adapter = function (adapter) {
 	 *			maxBytesPerFile	: {Integer} Maximum file size for each individual file (default 25MB)
 	 */
 
-	this.write = function (connectionID, cid, uploadStream, options, cb) {
+	this.write = function (connectionID, collectionID, uploadStream, options, cb) {
 
 		// Usage
 		if (!_.isFunction(cb) && _.isFunction(options)) {
@@ -142,39 +112,34 @@ var Adapter = function (adapter) {
 		}
 
 		// Apply collection/adapter default options
-		options = _extendOptions(cid, options);
+		options = _extendOptions(connectionID, options);
+
 		
 		// For now, just error out
 		if (! _.isString(options.pathPrefix) ) {
-			return cb(errors.read.invalidPathPrefix);
+			return cb(errors.read.invalidPathPrefix(options.pathPrefix));
 		}
 
 		// Sanitize path prefix
 		options.pathPrefix = Validation.sanitizePathPrefix(options.pathPrefix);
 
-
-		// Default options
-		_.defaults(options, {
-			maxBytes: 1000 * 1000 * 1000, // 1GB
-			maxBytesPerFile: 1000 * 1000 * 25, // 25MB
-			saveAs: function (filename) {
-				return filename;
-			}
-		});
-
 		// Apply options to upload stream
+		// TODO: consider namespacing this...
 		_.extend(uploadStream, options);
 
 		// Track that this uploadStream is being deliberately consumed
 		// by a blob adapter by marking it with
-		// uploadStream.attachedTo.push();
-		console.log('Writing from upload stream ::', uploadStream.fieldName);
+		if ( !uploadStream.connectedTo || typeof uploadStream.connectedTo.length === 'undefined' ) {
+			console.log(uploadStream);
+			return cb(errors.invalidUploadStream(uploadStream));
+		}
+		uploadStream.connectedTo.push(connectionID);
 
 		// console.log('\n\n', 'uploadstream:',uploadStream);
 
 		// Call the wrapped adapter upload logic
 		////////////////////////////////////////////////////////////
-		adapter.write(uploadStream, options, cb);
+		childAdapter.write(uploadStream, options, cb);
 		////////////////////////////////////////////////////////////
 
 		// Resume specified uploadStream, replaying its buffers and immediately
@@ -183,7 +148,7 @@ var Adapter = function (adapter) {
 		// console.log('* adapter resuming upload stream...');
 		uploadStream._resume();
 
-		// Return uploadStream to allow for chaining
+		// Return uploadStream to allow for piping
 		return uploadStream;
 	};
 
@@ -200,7 +165,7 @@ var Adapter = function (adapter) {
 	 * Adapter.read({}, destinationStream, cb)
 	 */
 
-	this.read = function (cid) {
+	this.read = function (connectionID, collectionID) {
 
 		var options, cb, destinationStream;
 		var err;
@@ -256,13 +221,13 @@ var Adapter = function (adapter) {
 		// else if ( _.isUndefined (arg0) ) { }
 
 		else {
-			console.error('Invalid usage of .read() ::',errors.read.usage);
+			console.error('Invalid usage of .read() ::',errors.read.usage());
 
 			// Usage error occurred
-			cb(errors.read.usage);
+			cb(errors.read.usage());
 
 			// Return dummy stream that will error out
-			return errors.stream(errors.read.usage);			
+			return errors.stream(errors.read.usage());			
 		}
 
 
@@ -288,7 +253,7 @@ var Adapter = function (adapter) {
 		}
 
 		// Apply collection/adapter default options
-		options = _extendOptions(cid, options);
+		options = _extendOptions(connectionID, options);
 		
 
 		if ( _.isString(options.pathPrefix) ) {
@@ -299,12 +264,12 @@ var Adapter = function (adapter) {
 		}
 
 
-		// Default encoding to uft8
-		options.decoding = options.decoding || 'utf8';
-
-		// Get source stream from adapter
-		var downloadStream = adapter.read(new DownloadStream(), options, cb);
-
+		// Call the childAdapter's download logic
+		// (gets source stream from adapter)
+		////////////////////////////////////////////////////////////
+		var downloadStream = childAdapter.read(new DownloadStream(), options, cb);
+		////////////////////////////////////////////////////////////
+		
 		// If destination stream was passed in, pipe data directly to it
 		if (destinationStream) {
 			downloadStream.pipe(destinationStream);
@@ -313,14 +278,48 @@ var Adapter = function (adapter) {
 			downloadStream.destinationStream = destinationStream;
 		}
 
-		// Call the wrapped adapter upload logic
-		// Return file stream to allow for chaining
-		////////////////////////////////////////////////////////////
+		// Return download stream to allow for piping
 		return downloadStream;
-		////////////////////////////////////////////////////////////
-
 	};
+
+
+
+
+
+
+
+
+	/**
+	 * Extend usage options with collection configuration
+	 * (which also includes adapter defaults)
+	 *
+	 * @param  {[type]} connectionID [description]
+	 * @param  {[type]} options      [description]
+	 * @return {[type]}              [description]
+	 * 
+	 * @api private
+	 */
+
+	function _extendOptions (connectionID, options) {
+
+		// Ignore unexpected options argument, use {} instead
+		options = _.isPlainObject(options) ? options : {};
+
+		// Apply collection defaults, if relevant
+		if (connectionID) {
+			options = _.merge({}, _connections[connectionID].config, options);
+		}
+		
+		// Clone options
+		options = _.cloneDeep(options);
+
+		// console.log('\n\n****************\nIN GENERICBLOBADAPTER.write() :: options ::\n', options);
+
+		return options;
+	}
 };
+
+
 
 
 /**
@@ -328,4 +327,6 @@ var Adapter = function (adapter) {
  */
 
 module.exports = Adapter;
+
+
 

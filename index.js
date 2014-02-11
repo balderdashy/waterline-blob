@@ -6,7 +6,7 @@
 	definitions from simple blob adapter definitions.
 
 	Mixes-in blob read/write support to waterline.
-	TODO: merge this into core
+	TODO: merge this into core..?
 
 ---------------------------------------------------------------*/
 
@@ -29,7 +29,7 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 	var adapter = new GenericBlobAdapter ( adapterDefinition );
 	
 	// Merge in any other methods from def. which aren't covered
-	// e.g. registerCollection
+	// e.g. registerConnection
 	_.defaults(adapter, adapterDefinition);
 
 	return {
@@ -39,9 +39,9 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 		 *
 		 * TODO: completely wipe this stuff when this is in waterline core
 		 */
-		registerCollection: function (collection, cb) {
-			if (adapter.registerCollection) {
-				return adapter.registerCollection(collection, cb);
+		registerConnection: function (connection, collections, cb) {
+			if (adapter.registerConnection) {
+				return adapter.registerConnection(connection, collections, cb);
 			}
 			return cb();
 		},
@@ -64,8 +64,8 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 		 *			maxBytesPerFile	: {Integer} Maximum file size for each individual file (default 25MB)
 		 */
 
-		write: function (collectionName) {
-			var args = Array.prototype.slice.call(arguments, 0);
+		write: function (connectionID, collectionName /* , .... */ ) {
+			var args = Array.prototype.slice.call(arguments);
 
 			// Call underlying method
 			adapter.write.apply(this, args);
@@ -73,8 +73,8 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 
 
 
-		read: function (collectionName) {
-			var args = Array.prototype.slice.call(arguments, 0);
+		read: function (connectionID, collectionName /* , .... */ ) {
+			var args = Array.prototype.slice.call(arguments);
 
 			// Call underlying method
 			adapter.read.apply(this, args);
@@ -87,14 +87,12 @@ module.exports = function generateWaterlineAdapter (adapterDefinition) {
 		 *
 		 * Delete/unlink a file from the connected filesystem.
 		 */
-		rm: function (collectionName, options, cb) {
-			// Stub response
-			setTimeout(cb, 1);
-		},
+		rm: function (connectionID, collectionID /* , .... */) {
+			var args = Array.prototype.slice.call(arguments);
 
-
-
-
+			// Call underlying method
+			adapter.rm.apply(this, args);
+		}
 	};
 
 };
