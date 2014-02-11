@@ -99,7 +99,7 @@ var Adapter = function (adapter) {
 	/**
 	 * Default registerCollection behavior
 	 */
-	this.registerCollection = function (collection, cb) {
+	this.registerCollection = function (connection, collection, cb) {
 
 		// Absorb defaults into collection configuration
 		collection.config = _.defaults(collection.config, adapter.defaults);
@@ -164,6 +164,11 @@ var Adapter = function (adapter) {
 
 		// Apply options to upload stream
 		_.extend(uploadStream, options);
+
+		// Track that this uploadStream is being deliberately consumed
+		// by a blob adapter by marking it with
+		// uploadStream.attachedTo.push();
+		console.log('Writing from upload stream ::', uploadStream.fieldName);
 
 		// console.log('\n\n', 'uploadstream:',uploadStream);
 
