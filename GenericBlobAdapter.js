@@ -23,8 +23,11 @@ var errors = {
 		},
 	},
 
-	invalidUploadStream: function (uploadStream) {
-		return new Error(util.format('Adapter :: Invalid upload stream for field: `%s`.', uploadStream.fieldName));
+	write: {
+
+		invalidUploadStream: function (uploadStream) {
+			return new Error(util.format('Adapter :: Invalid upload stream for field: `%s`.', uploadStream.fieldName));
+		},
 	},
 
 	// Emit dummy stream that just errors out immediately
@@ -128,12 +131,9 @@ var Adapter = function ( childAdapter ) {
 		// Track that this uploadStream is being deliberately consumed
 		// by a blob adapter by marking it with
 		if ( !uploadStream.connectedTo || typeof uploadStream.connectedTo.length === 'undefined' ) {
-			console.log(uploadStream);
-			return cb(errors.invalidUploadStream(uploadStream));
+			return cb(errors.write.invalidUploadStream(uploadStream));
 		}
 		uploadStream.connectedTo.push(connectionID);
-
-		// console.log('\n\n', 'uploadstream:',uploadStream);
 
 		// Call the wrapped adapter upload logic
 		////////////////////////////////////////////////////////////
@@ -143,7 +143,6 @@ var Adapter = function ( childAdapter ) {
 		// Resume specified uploadStream, replaying its buffers and immediately
 		// receiving any queued signals.  This also allows us to receive file uploads
 		// which haven't happened yet
-		// console.log('* adapter resuming upload stream...');
 		uploadStream._resume();
 
 		// Return uploadStream to allow for piping
@@ -216,10 +215,9 @@ var Adapter = function ( childAdapter ) {
 		}
 
 		// Adapter.read()
-		// else if ( _.isUndefined (arg0) ) { }
+		// else if ( _.isUndefined (arg0) ) { ..? }
 
 		else {
-			console.error('Invalid usage of .read() ::',errors.read.usage());
 
 			// Usage error occurred
 			cb(errors.read.usage());
@@ -266,7 +264,10 @@ var Adapter = function ( childAdapter ) {
 		var downloadStream = childAdapter.read(new DownloadStream(), options, cb);
 		////////////////////////////////////////////////////////////
 		
+
+
 		// If destination stream was passed in, pipe data directly to it
+		// TODO: deprecate this in favor of a more node-y call to pipe()
 		if (destinationStream) {
 			downloadStream.pipe(destinationStream);
 
@@ -308,8 +309,6 @@ var Adapter = function ( childAdapter ) {
 		
 		// Clone options
 		options = _.cloneDeep(options);
-
-		// console.log('\n\n****************\nIN GENERICBLOBADAPTER.write() :: options ::\n', options);
 
 		return options;
 	}
